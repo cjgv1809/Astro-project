@@ -1,0 +1,45 @@
+---
+import { getLatestLaunches, getLaunchById } from "../../services/spacex";
+import Layout from "../../layouts/Layout.astro";
+
+// export const prerender = false // or true if you want to prerender the page on build time, needs to be a top level export and output config needs to be 'hybrid' or 'server'
+const { id } = Astro.params;
+
+let launch = null;
+if (id) {
+  launch = await getLaunchById(id);
+} else {
+  Astro.redirect("/");
+}
+
+export const getStaticPaths = async () => {
+  // call spacex api to get all launches ids
+  // return an array of paths with the ids
+  const launches = await getLatestLaunches();
+
+  if (launches) {
+    return launches.map((launch) => ({
+      params: {
+        id: launch.id,
+      },
+    }));
+  }
+};
+---
+
+<Layout title={`Lanzamiento ${launch?.name}`}>
+  <article class="flex flex-col gap-y-4 items-center">
+    <img
+      style={{ width: "200px", height: "auto" }}
+      class="w-52 h-auto object-cover mx-auto rounded-lg shadow-lg"
+      src={launch?.links.patch.small}
+      alt={launch?.name}
+    />
+    <h2 class="text-2xl text-white font-bold">
+      {launch?.name} - <span class="text-base font-light"
+        >{launch?.date_utc}</span
+      >
+    </h2>
+    <p class="text-white text-lg">{launch?.details}</p>
+  </article>
+</Layout>
